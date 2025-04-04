@@ -1,0 +1,911 @@
+<!Doctype html>
+<html>
+<head>
+<title>Bee shooter!</title>
+</head>
+
+<body>
+
+<script src="https://code.jquery.com/jquery-2.1.0.js"></script>
+
+<canvas id="canvas" width="1000" height ="800"></canvas>
+
+<script>
+
+
+// Version Notes
+/*
+ * Designed the 'player menu' page
+ * Can select guns (3 options)
+ * Added skin selection
+ * Enhanced skins
+ * Buffed semi-automatic gun. Firerate: 30 -> 15.
+ */
+
+// Next Version Plan
+/*
+ * Embellish 'player menu' page
+ * Nerf 'sniper' gun
+ */
+
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+
+var width = canvas.width;
+var height = canvas.height;
+
+const BLOCK = 25;
+const MARGIN = 10;
+
+// info box functions
+/*
+const info = document.getElementById("info");
+const ctx2 = info.getContext("2d");
+const iWidth = info.width;
+const iHeight = info.height;
+
+const infoBackground = function() {
+	ctx2.fillStyle = "Gray";
+  ctx2.fillRect(0, 0, iWidth, iHeight);
+};
+
+const infoTitle = function() {
+	ctx2.fillStyle = "White";
+  ctx2.font = "18px Courier";
+  ctx2.textAlign = "center";
+  ctx2.textBaseline = "middle";
+  ctx2.fillText("Player 1", iWidth / 2, BLOCK);
+};
+
+const displaySkin = function() {
+	ctx2.beginPath();
+  ctx2.arc(iWidth / 2, iHeight / 2, radius, 0, Math.PI * 2, false);
+  ctx2.fill();
+};
+*/
+
+// canvas functions
+
+var circle = function (x, y, radius, fill, color) {
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+
+  if (fill) {
+    ctx.fillStyle = color;
+    ctx.fill();
+  } else {
+    ctx.strokeStyle = color;
+    ctx.stroke();
+  }
+};
+
+// resize canvas to fit window
+window.addEventListener("load", function () {
+  canvas.width = window.innerWidth - 25 - 250;
+  canvas.height = window.innerHeight - 25;
+  width = canvas.width;
+  height = canvas.height;
+});
+
+// Preparing canvas
+
+const coatCanvas = function (color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, width, height);
+};
+
+const borderMenu = function () {
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 5; i += 1) {
+    ctx.strokeStyle = "Black";
+    ctx.strokeRect(i * 3, i * 3, width - i * 6, height - i * 6);
+  }
+};
+
+var border = function () {
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = "Black";
+  ctx.strokeRect(0, 0, width, height);
+
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "Gray";
+  ctx.beginPath();
+  for (var i = 0; i < width; i += 50) {
+    ctx.moveTo(i, 50);
+    ctx.lineTo(i, height);
+    ctx.stroke();
+  }
+  for (var j = 0; j < height; j += 50) {
+    ctx.moveTo(0, j);
+    ctx.lineTo(width, j);
+    ctx.stroke();
+  }
+};
+
+// Displays
+
+var gameOver = function () {
+  var finalScore = player1.score;
+  var pName = player1.playerName;
+  var beesKilled = player1.beesKilled;
+  var accuracy = Math.floor((player1.beesHit / player1.bulletsFired) * 100);
+  clearInterval(i1);
+
+  ctx.clearRect(0, 0, width, height);
+  $("canvas").fadeOut("2000");
+  $("canvas").fadeIn("slow");
+
+  var Ball = function () {
+    this.x = Math.floor(Math.random() * (width - 20) + 10);
+    this.y = Math.floor(Math.random() * (height - 20) + 10);
+    this.size = 15;
+  };
+
+  Ball.prototype.move = function () {
+    this.y -= 5;
+    if (this.y < 1) {
+      this.y = height - 2;
+    }
+  };
+
+  Ball.prototype.draw = function () {
+    circle(this.x, this.y, this.size, true, "Red");
+  };
+
+  var b1 = new Ball();
+  var b2 = new Ball();
+  var b3 = new Ball();
+  var b4 = new Ball();
+  var b5 = new Ball();
+  var b6 = new Ball();
+  var b7 = new Ball();
+  var b8 = new Ball();
+  var b9 = new Ball();
+
+  var balls = [b1, b2, b3, b4, b5, b6, b7, b8, b9];
+
+  var t = setTimeout(function () {
+    var i2 = setInterval(function () {
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.fillStyle = "Black";
+      ctx.fillRect(0, 0, width, height);
+
+      for (var i = 0; i < balls.length; i += 1) {
+        balls[i].move();
+        balls[i].draw();
+      }
+
+      ctx.font = "60px Courier";
+      ctx.fillStyle = "White";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      ctx.fillStyle = "Red";
+      ctx.strokeStyle = "Red";
+      ctx.lineWidth = 10;
+      ctx.fillText("Game Over", width / 2, height / 2 - 100);
+      ctx.strokeRect(width / 2 - 200, height / 2 - 175, 400, 150);
+
+      ctx.fillStyle = "White";
+      ctx.font = "24px Courier";
+      ctx.fillText("Name", width / 3, height / 2 + 50);
+      ctx.fillText("Bees killed", width / 3, height / 2 + 100);
+      ctx.fillText("Accuracy", width / 3, height / 2 + 150);
+      ctx.fillText("Final Score", width / 3, height / 2 + 200);
+
+      ctx.fillText(pName, (width * 2) / 3, height / 2 + 50);
+      ctx.fillText(beesKilled, (width * 2) / 3, height / 2 + 100);
+      ctx.fillText(accuracy + "%", (width * 2) / 3, height / 2 + 150);
+      ctx.fillText(finalScore, (width * 2) / 3, height / 2 + 200);
+    }, 50);
+  }, 500);
+};
+
+var displayTime = function (time) {
+  if (time < 6) {
+    ctx.fillStyle = "Red";
+    ctx.font = "24px Verdana";
+  } else {
+    ctx.fillStyle = "DarkOrange";
+    ctx.font = "20px Verdana";
+  }
+
+  ctx.fillText("Time left: " + time, 10, 30);
+};
+
+var displayScore = function (score) {
+  ctx.fillStyle = "Black";
+  ctx.fillRect(width - 160, 10, 150, 30);
+
+  ctx.lineWidth = 5;
+  ctx.font = "20px Verdana";
+  if (score > 300) {
+    ctx.fillStyle = "Gold";
+    ctx.strokeStyle = "Gold";
+  } else if (score > 250) {
+    ctx.fillStyle = "Red";
+    ctx.strokeStyle = "Red";
+  } else if (score > 200) {
+    ctx.fillStyle = "Pink";
+    ctx.strokeStyle = "Pink";
+  } else if (score > 150) {
+    ctx.fillStyle = "Orange";
+    ctx.strokeStyle = "Orange";
+  } else if (score > 100) {
+    ctx.fillStyle = "Cyan";
+    ctx.strokeStyle = "Cyan";
+  } else if (score > 50) {
+    ctx.fillStyle = "Green";
+    ctx.strokeStyle = "Green";
+  } else {
+    ctx.fillStyle = "White";
+    ctx.strokeStyle = "White";
+  }
+
+  ctx.fillText("SCORE   " + score, width - 150, 33);
+  ctx.strokeRect(width - 160, 10, 150, 30);
+};
+
+const showMode = function () {
+  ctx.strokeStyle = "White";
+  ctx.lineWidth = 1;
+  ctx.font = "14px Verdana";
+  ctx.strokeText("Current mode: " + mode, BLOCK, height - BLOCK);
+};
+
+const drawEnterButton = function () {
+  ctx.strokeStyle = "Orange";
+  ctx.fillStyle = "Yellow";
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.moveTo(width, (7 * height) / 8);
+  ctx.lineTo((3 * width) / 4, (7 * height) / 8);
+  ctx.lineTo((2 * width) / 3, height);
+  ctx.stroke();
+  ctx.fill();
+
+  ctx.font = "60px Courier";
+  ctx.strokeStyle = "Gray";
+  ctx.lineWidth = 2;
+  ctx.textAlign = "middle";
+  ctx.strokeText("ENTER", (3 * width) / 4 - BLOCK / 2, height - BLOCK / 2);
+  ctx.textAlign = "bottom";
+};
+
+const gameTitle = function () {
+  // grid
+  let wInc = width / 10;
+  let hInc = height / 10;
+  ctx.beginPath();
+  for (let i = 0; i < width; i += wInc) {
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i, height);
+  }
+  for (let j = 0; j < height; j += hInc) {
+    ctx.moveTo(0, j);
+    ctx.lineTo(width, j);
+  }
+  ctx.stroke();
+
+  // display title text.
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  // display colorful 'spacecraft' title.
+  ctx.font = "90px Courier";
+  let gradient = ctx.createLinearGradient(width, 0, 65, width / 5);
+  gradient.addColorStop(0, "Yellow");
+  gradient.addColorStop(1, "Purple");
+  ctx.fillStyle = gradient;
+  ctx.fillText("Bee Shooter", width / 2, height / 4);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "bottom";
+};
+
+// Gunz - basic tier (tier 0)
+
+var striker = {
+  name: "Striker",
+  firerate: 50, // time taken between shots ( 100 = 1 sec )
+  bulletSpeed: 3,
+  bulletSize: 10,
+  damage: 60
+};
+
+var semiAuto = {
+  name: "Semi-autmatic Rifle",
+  firerate: 15,
+  bulletSpeed: 4,
+  bulletSize: 6,
+  damage: 30
+};
+
+var sniper = {
+  name: "Sniper Rifle",
+  firerate: 110,
+  bulletSpeed: 6,
+  bulletSize: 12,
+  damage: 100
+};
+
+// middle tier (tier 1)
+
+var cannon = {
+  name: "Cannon",
+  firerate: 160,
+  bulletSpeed: 3,
+  bulletSize: 20,
+  damage: 100
+};
+
+var gatling = {
+  name: "Gatling Machine Gun",
+  firerate: 10,
+  bulletSpeed: 6,
+  bulletSize: 8,
+  damage: 15
+};
+
+var ultraBeam = {
+  name: "Ultraman's Ultrabeam of deznut",
+  firerate: 100,
+  bulletSpeed: 3,
+  bulletSize: 45,
+  damage: 20
+};
+
+const creamRifle = {
+  name: "Cream",
+  firerate: 500,
+  bulletSpeed: 1,
+  bulletSize: 400,
+  damage: 100
+};
+
+var guns = [
+  [striker, semiAuto, sniper],
+  [cannon, gatling],
+  [ultraBeam],
+  [creamRifle]
+];
+
+// NOTE: for the current version, only the first 3 guns (the first tier) are available for the game.
+
+const showGun = function (gun, pos) {
+  ctx.strokeStyle = "Gray";
+  ctx.lineWidth = 2;
+  circle((width / 3) * pos + width / 7, height / 5, 2 * BLOCK, false, "White");
+  circle(
+    (width / 3) * pos + width / 7,
+    height / 5,
+    2 * BLOCK + 5,
+    false,
+    "Gray"
+  );
+  circle(
+    (width / 3) * pos + width / 7,
+    height / 5,
+    2 * BLOCK + 10,
+    false,
+    "White"
+  );
+
+  ctx.fillStyle = "Green";
+  ctx.font = "18px Courier";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(
+    "[" + (pos + 1) + "]" + gun.name,
+    (width / 3) * pos + width / 7,
+    height / 3
+  );
+  ctx.textAlign = "left";
+  ctx.textBaseline = "bottom";
+};
+
+const displayGuns = function () {
+  ctx.fillStyle = "DarkCyan";
+  ctx.strokeStyle = "DarkKhaki";
+  ctx.font = "bold italic 40px Times New Roman";
+  ctx.lineWidth = 4;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.strokeText("+ GUN SELECT +", width / 2, height / 18);
+  ctx.fillText("+ GUN SELECT +", width / 2, height / 18);
+  for (let i = 0; i < 3; i += 1) {
+    showGun(guns[0][i], i);
+  }
+};
+
+// skin constructor
+
+const Skin = function (name, c1, c2) {
+  this.name = name;
+  this.color1 = c1;
+  this.color2 = c2;
+};
+
+const skin1 = new Skin("Green", "Lime", "Green");
+const skin2 = new Skin("Blue Bomber", "Blue", "Cyan");
+const skin3 = new Skin("Vigilante", "IndianRed", "LightSlateGray");
+const skin4 = new Skin("Deep Iron", "Silver", "Gray");
+const skin5 = new Skin("Nomad", "BlanchedAlmond", "DarkGoldenRod");
+
+const skins = [skin1, skin2, skin3, skin5];
+
+const skinKeys = ["q", "w", "e", "r"];
+
+const showSkin = function (skin, pos) {
+  ctx.fillStyle = skin.color1;
+  ctx.strokeStyle = skin.color2;
+  ctx.lineWidth = 10;
+  ctx.fillRect(((pos + 1) * width) / 6, height / 2, width / 8, height / 8);
+  ctx.strokeRect(((pos + 1) * width) / 6, height / 2, width / 8, height / 8);
+
+  ctx.fillStyle = "Indigo";
+  ctx.font = "24px Courier";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(
+    "[" + skinKeys[pos] + "]",
+    ((pos + 1) * width) / 6,
+    (2 * height) / 3
+  );
+  ctx.textAlign = "left";
+  ctx.textBaseline = "bottom";
+};
+
+const displaySkins = function () {
+  ctx.fillStyle = "DarkCyan";
+  ctx.strokeStyle = "DarkKhaki";
+  ctx.font = "bold italic 40px Times New Roman";
+  ctx.lineWidth = 4;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.strokeText("+ SKIN SELECT +", width / 2, (2 * height) / 5);
+  ctx.fillText("+ SKIN SELECT +", width / 2, (2 * height) / 5);
+  for (let s = 0; s < skins.length; s += 1) {
+    showSkin(skins[s], s);
+  }
+};
+
+// The hunter constructor
+
+var Hunter = function () {
+  this.x = width / 2;
+  this.y = (height * 3) / 4;
+  this.gun = guns[0][0]; // default
+  this.speed = 3;
+  this.direction = "stop";
+
+  this.score = 0;
+  this.skin = skins[0];
+  this.playerName = "";
+
+  this.isReady = true;
+  this.beesKilled = 0;
+  this.bulletsFired = 0;
+  this.beesHit = 0;
+};
+
+Hunter.prototype.draw = function () {
+  ctx.fillStyle = this.skin.color1;
+  ctx.strokeStyle = this.skin.color2;
+
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(this.x, this.y - 30);
+  ctx.lineTo(this.x + 20, this.y);
+  ctx.lineTo(this.x, this.y + 12);
+  ctx.lineTo(this.x - 20, this.y);
+  ctx.lineTo(this.x, this.y - 30);
+  ctx.fill();
+  ctx.stroke();
+};
+
+Hunter.prototype.labelName = function () {
+  var n = this.playerName;
+  ctx.fillStyle = "DarkGray";
+  ctx.fillText(n, this.x - 6, this.y + 24);
+};
+
+Hunter.prototype.move = function () {
+  if (this.direction === "left") {
+    this.x -= this.speed;
+  }
+  if (this.direction === "right") {
+    this.x += this.speed;
+  }
+
+  if (this.x < 0) {
+    this.direction = "right";
+  }
+  if (this.x > width) {
+    this.direction = "left";
+  }
+};
+
+Hunter.prototype.getDirection = function (direction) {
+  this.direction = direction;
+};
+
+// Bullet constructor
+
+var Bullet = function (x, y, radius, speed, d) {
+  this.x = x;
+  this.y = y;
+  this.size = radius;
+  this.speed = speed;
+  this.damage = d;
+};
+
+Bullet.prototype.move = function () {
+  this.y -= this.speed;
+};
+
+Bullet.prototype.draw = function () {
+  circle(this.x, this.y, this.size, true, "DarkOrange");
+  circle(this.x, this.y, this.size, false, "Brown");
+};
+
+// Check collision
+
+Bullet.prototype.checkCollision = function (obj) {
+  var a = obj.x - obj.size;
+  var b = obj.x + obj.size;
+  var c = obj.y - obj.size;
+  var d = obj.y + obj.size;
+  var a2 = this.x - this.size;
+  var b2 = this.x + this.size;
+  var c2 = this.y - this.size;
+  var d2 = this.y + this.size;
+
+  if (b2 > a && a2 < b && d2 > c && c2 < d) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+// Create bullet functions: createBullet, deleteBullets, updateBullets, drawBullets.
+
+var bullets = [];
+
+Hunter.prototype.createBullet = function () {
+  var b = new Bullet(
+    this.x,
+    this.y,
+    this.gun.bulletSize,
+    this.gun.bulletSpeed,
+    this.gun.damage
+  );
+  bullets.unshift(b);
+  this.bulletsFired += 1;
+};
+
+var updateBullets = function () {
+  for (var i = 0; i < bullets.length; i++) {
+    bullets[i].move();
+  }
+};
+
+var drawBullets = function () {
+  for (var i = 0; i < bullets.length; i++) {
+    bullets[i].draw();
+  }
+};
+
+var deleteBullets = function () {
+  for (var i = 0; i < bullets.length; i++) {
+    if (bullets[i].y < 60) {
+      bullets.splice(i, 1);
+    }
+  }
+};
+
+Hunter.prototype.canShoot = function (timeCount) {
+  if (timeCount % this.gun.firerate === 0) {
+    timeCount = 0;
+    return true;
+  }
+};
+
+// Bees constructor
+
+var Bee = function (y, d) {
+  this.x = d === "right" ? BLOCK : width - BLOCK;
+  this.y = y;
+  this.size = 16;
+  this.speed = 2;
+  this.s = this.speed * 2 + 1;
+  this.dir = d;
+  this.hp = 100;
+  this.maxHp = 100;
+};
+
+Bee.prototype.move = function () {
+  let yOffset = Math.floor(Math.random() * this.s) - this.speed;
+  let xOffset;
+
+  if (this.dir === "right") {
+    xOffset = Math.floor(Math.random() * (this.speed + 1));
+  } else if (this.dir === "left") {
+    xOffset = Math.floor(Math.random() * (this.speed + 1)) * -1;
+  }
+
+  this.x += xOffset;
+  this.y += yOffset;
+
+  if (this.x < 0) {
+    this.x = width;
+  } else if (this.x > width) {
+    this.x = 0;
+  }
+};
+
+Bee.prototype.draw = function () {
+  ctx.lineWidth = 2;
+  var color = "Gold";
+  circle(this.x, this.y, this.size, true, "Black");
+  circle(this.x, this.y, this.size, false, color);
+  circle(this.x - 5, this.y - 11, this.size / 2, false, "Black");
+  circle(this.x + 5, this.y - 11, this.size / 2, false, "Black");
+  circle(this.x - 2, this.y - 1, this.size / 2 - 2, false, "Black");
+  circle(this.x + 2, this.y - 1, this.size / 2 - 2, false, "Black");
+};
+
+Bee.prototype.drawHPBar = function () {
+  if (this.hp < this.maxHp) {
+    let cx = this.x;
+    let cy = this.y + BLOCK;
+    let labelHalfWidth = BLOCK;
+    let labelHalfHeight = MARGIN;
+    ctx.fillStyle = "Black";
+    ctx.fillRect(
+      cx - labelHalfWidth,
+      cy - labelHalfHeight,
+      labelHalfWidth * 2,
+      labelHalfHeight * 2
+    );
+
+    if (this.hp <= 20) {
+      ctx.fillStyle = "Red";
+    } else if (this.hp <= 40) {
+      ctx.fillStyle = "Orange";
+    } else if (this.hp <= 60) {
+      ctx.fillStyle = "Yellow";
+    } else if (this.hp <= 80) {
+      ctx.fillStyle = "LightGreen";
+    } else if (this.hp < 100) {
+      ctx.fillStyle = "Green";
+    }
+
+    ctx.fillRect(
+      cx - labelHalfWidth + 1,
+      cy - labelHalfHeight + 1,
+      (labelHalfWidth * 2 - 2) * (this.hp / this.maxHp),
+      labelHalfHeight * 2 - 2
+    );
+  }
+};
+
+// Bee functions: generate, move, draw, delete.
+
+var bees = [];
+var maxBees = 2;
+
+var generateBee = function () {
+  var ranYCoor = BLOCK * 5 + Math.floor((Math.random() * height) / 2);
+  var direction = Math.random() >= 0.5 ? "right" : "left";
+  var newBee = new Bee(ranYCoor, direction);
+  bees.unshift(newBee);
+};
+
+var moveBees = function () {
+  for (var i = 0; i < bees.length; i += 1) {
+    bees[i].move();
+  }
+};
+
+var drawBees = function () {
+  for (var i = 0; i < bees.length; i += 1) {
+    bees[i].draw();
+    bees[i].drawHPBar();
+  }
+};
+
+var updateMaxBees = function (t) {
+  if (t > 5) {
+    maxBees = 3;
+  }
+  if (t > 10) {
+    maxBees = 4;
+  }
+  if (t > 16) {
+    maxBees = 5;
+  }
+  if (t > 21) {
+    maxBees = 6;
+  }
+  if (t > 25) {
+    maxBees = 7;
+  }
+  if (t > 28) {
+    maxBees = 8;
+  }
+  if (t > 36) {
+    maxBees = 9;
+  }
+  if (t > 41) {
+    maxBees = 10;
+  }
+};
+
+// Initialization
+
+var player1 = new Hunter();
+
+// collision check function
+
+var deleteBees = function () {
+  for (var i = 0; i < bees.length; i += 1) {
+    for (var j = 0; j < bullets.length; j += 1) {
+      if (bullets[j].checkCollision(bees[i])) {
+        bees[i].hp -= bullets[j].damage;
+        player1.beesHit += 1;
+        if (bees[i].hp <= 0) {
+          bees.splice(i, 1);
+          player1.score += 10;
+          player1.beesKilled += 1;
+          timeElapsed -= 1;
+        } else {
+          bullets.splice(j, 1);
+        }
+      }
+    }
+  }
+};
+
+// gun selection function
+
+const selectGun = function (input) {
+  if (input === "1") {
+    player1.gun = guns[0][0];
+  } else if (input === "2") {
+    player1.gun = guns[0][1];
+  } else if (input === "3") {
+    player1.gun = guns[0][2];
+  }
+};
+
+// skin selection function
+
+const selectSkin = function (input) {
+  if (input === "q") {
+    player1.skin = skins[0];
+  } else if (input === "w") {
+    player1.skin = skins[1];
+  } else if (input === "e") {
+    player1.skin = skins[2];
+  } else if (input === "r") {
+    player1.skin = skins[3];
+  }
+};
+
+// Keydown handler
+
+var inputs = {
+  13: "enter",
+  37: "left",
+  39: "right",
+  49: "1",
+  50: "2",
+  51: "3",
+  81: "q",
+  87: "w",
+  69: "e",
+  82: "r"
+};
+
+$("body").keydown(function (event) {
+  var direction = inputs[event.keyCode];
+  player1.getDirection(direction);
+  if (mode === modes[1]) {
+    confirm(direction);
+    selectGun(direction);
+    selectSkin(direction);
+  }
+  if (mode === modes[0]) {
+    confirm(direction);
+  }
+});
+
+// Pre-game
+
+var totalTime = 30;
+var timeElapsed = 0;
+var gunTime = 0;
+player1.playerName = "Sup"; //prompt("Insert a username (1 - 10 characters):");
+if (player1.playerName === null || player1.playerName.length > 10) {
+  player1.playerName = "Player";
+}
+
+// Screen modes
+
+const modes = ["Opening screen", "Player menu", "Game"];
+let mode = modes[0];
+
+const confirm = function (input) {
+  if (input === "enter") {
+    mode = modes[modes.indexOf(mode) + 1];
+  }
+};
+
+// Game Loop
+
+const i1 = setInterval(function () {
+  ctx.clearRect(0, 0, width, height);
+
+  if (mode === modes[0]) {
+    coatCanvas("CornflowerBlue");
+    gameTitle();
+    drawEnterButton();
+  } else if (mode === modes[1]) {
+    coatCanvas("SkyBlue");
+    displayGuns();
+    displaySkins();
+    drawEnterButton();
+    borderMenu();
+  } else if (mode === modes[2]) {
+    coatCanvas("LightGreen");
+    border();
+    //infoBackground();
+    //infoTitle();
+    timeElapsed += 0.01;
+    var timeElapsedFloor = Math.floor(timeElapsed);
+    var timeRemaining = totalTime - timeElapsedFloor;
+    displayTime(timeRemaining);
+
+    displayScore(player1.score);
+
+    player1.move();
+    player1.draw();
+    player1.labelName();
+
+    gunTime += 1;
+    if (player1.canShoot(gunTime)) {
+      player1.createBullet();
+    }
+
+    deleteBullets();
+    updateBullets();
+    drawBullets();
+
+    updateMaxBees(timeElapsed);
+
+    if (bees.length < maxBees) {
+      generateBee();
+    }
+
+    deleteBees();
+    moveBees();
+    drawBees();
+
+    if (totalTime - timeElapsedFloor === 0) {
+      gameOver();
+    }
+  }
+  showMode();
+}, 10);
+
+
+
+
+
+
+
+
+</script>
+</body>
+</html>
